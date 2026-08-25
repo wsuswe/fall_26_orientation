@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week One :: Survival Relay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#F5F6FB; --panel:#FFFFFF; --panel-raised:#EEF1FA; --hairline:#DCE1F2;
+    --text:#242B45; --muted:#6D7593;
+    --alpha:#7C5CFF; --beta:#00AEEF; --dot3:#FF6FA5; --ok:#00B88A; --fail:#FF4D6D; --gold:#FFAE1F;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at 15% -10%, rgba(124,92,255,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 5%, rgba(0,174,239,0.10) 0%, transparent 45%), var(--ink);
+    color:var(--text); font-family:'Nunito', sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:480px;margin:0 auto;padding:24px 18px 50px;}
+  .wrap.wide{max-width:920px;}
+  .screen{display:none;} .screen.active{display:block;}
+
+  .brand{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+  .brand b{color:var(--gold);}
+  h1{font-family:'Baloo 2',sans-serif;font-size:clamp(26px,6vw,34px);font-weight:800;margin:0 0 6px;letter-spacing:-0.01em;}
+  .lede{color:#555D7C;font-size:14px;line-height:1.6;margin-bottom:20px;}
+
+  .card{background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(36,43,69,0.05);}
+
+  label.field-label{display:block;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  input[type=text], input[type=number]{
+    width:100%;background:var(--panel-raised);border:1px solid var(--hairline);border-radius:10px;
+    padding:12px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-weight:600;font-size:15px;outline:none;
+  }
+  input[type=text]:focus, input[type=number]:focus{border-color:var(--gold);}
+
+  .host-link{display:block;text-align:center;margin-top:26px;font-family:'Space Mono',monospace;font-size:11px;color:#9AA1C0;text-decoration:none;}
+  .host-link:hover{color:var(--muted);}
+  .back-link{display:inline-block;margin-bottom:14px;font-family:'Space Mono',monospace;font-size:11.5px;color:var(--muted);text-decoration:none;cursor:pointer;}
+  .back-link:hover{color:var(--gold);}
+
+  .btn{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:600;letter-spacing:.02em;padding:12px 14px;border-radius:10px;border:1px solid var(--hairline);background:var(--panel-raised);color:var(--text);cursor:pointer;transition:all .15s ease;text-align:center;width:100%;}
+  .btn:hover{border-color:var(--gold);transform:translateY(-1px);} .btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+  .btn.primary{background:var(--gold);color:#3A2400;border-color:var(--gold);font-weight:700;}
+  .btn.primary:hover{filter:brightness(1.06);}
+  .btn.small{width:auto;padding:9px 14px;font-size:13px;}
+  .btn-row{display:flex;gap:8px;}
+
+  /* hub */
+  .hub-total-bar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:16px 18px;box-shadow:0 2px 10px rgba(36,43,69,0.05);}
+  .hub-total-bar .lbl{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+  .hub-total-bar .num{font-family:'Baloo 2',sans-serif;font-size:30px;font-weight:800;color:var(--gold);}
+  .hub-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
+  .hub-tile{background:var(--panel);border:1px solid var(--hairline);border-radius:14px;padding:13px;cursor:pointer;text-align:left;transition:all .15s ease;box-shadow:0 2px 8px rgba(36,43,69,0.04);}
+  .hub-tile:hover{border-color:var(--gold);transform:translateY(-2px);}
+  .hub-tile .htag{font-family:'Space Mono',monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+  .hub-tile .htitle{font-family:'Baloo 2',sans-serif;font-weight:700;font-size:14px;margin:4px 0 6px;line-height:1.25;}
+  .hub-tile .hscore{font-family:'Space Mono',monospace;font-size:11px;color:#A6ACC8;}
+  .hub-tile.played .hscore{color:var(--ok);font-weight:700;}
+
+  .day-badge{display:inline-flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#B87700;border:1px solid rgba(255,174,31,.4);background:rgba(255,174,31,.12);padding:5px 10px;border-radius:20px;width:fit-content;margin-bottom:12px;}
+  .stage h2{font-family:'Baloo 2',sans-serif;font-size:21px;margin:0 0 8px;font-weight:700;}
+  .scenario{color:#555D7C;font-size:13.5px;line-height:1.6;margin-bottom:12px;}
+  .puzzle-instructions{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+  .puzzle-box{background:var(--panel-raised);border:1px solid var(--hairline);border-radius:14px;padding:16px;margin-bottom:12px;min-height:190px;}
+  .combo-stage-label{font-family:'Space Mono',monospace;font-size:10.5px;color:#B87700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em;}
+
+  .result-banner{display:none;margin-bottom:12px;padding:14px;border-radius:12px;font-family:'Baloo 2',sans-serif;font-weight:700;text-align:center;}
+  .result-banner.show{display:block;}
+  .result-banner.ok{background:rgba(0,184,138,.1);border:1px solid var(--ok);color:#00805F;}
+  .result-banner.fail{background:rgba(255,77,109,.1);border:1px solid var(--fail);color:#D6234A;}
+  .result-banner .rb-sub{font-family:'Space Mono',monospace;font-size:11px;font-weight:400;color:var(--muted);margin-top:4px;}
+  .result-banner .confirm-btn{margin-top:12px;}
+
+  .stage-controls{display:flex;gap:10px;align-items:center;}
+  .stage-controls .btn{flex:1;}
+  .timer{font-family:'Baloo 2',sans-serif;font-size:24px;font-weight:700;color:var(--text);min-width:44px;text-align:right;}
+  .timer.low{color:var(--fail);}
+
+  /* building key + dot chips (maze v2) */
+  .building-key{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--muted);margin-bottom:10px;line-height:1.6;background:var(--panel);border:1px solid var(--hairline);border-radius:10px;padding:8px 10px;}
+  .dot-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+  .dot-chip{font-family:'Space Mono',monospace;font-size:11px;padding:7px 10px;border-radius:16px;border:1px solid var(--hairline);background:var(--panel);cursor:pointer;}
+  .dot-chip.active{border-color:var(--gold);color:#B87700;background:rgba(255,174,31,.1);}
+  .dot-chip.delivered{border-color:var(--ok);color:#00805F;background:rgba(0,184,138,.1);cursor:default;}
+
+  /* maze */
+  .maze-wrap{display:flex;flex-direction:column;gap:16px;align-items:center;}
+  .maze-scroll{max-width:100%;overflow-x:auto;padding:2px;}
+  .maze-grid{display:grid;gap:3px;margin:0 auto;}
+  .mcell{border-radius:6px;border:1px solid var(--hairline);background:var(--panel-raised);position:relative;}
+  .mcell.wall{background:repeating-linear-gradient(45deg,#E3E7F5,#E3E7F5 4px,#ECEFFA 4px,#ECEFFA 8px);}
+  .mcell.floor{background:#FFFFFF;}
+  .mcell.start{box-shadow:inset 0 0 0 2px var(--gold);}
+  .mcell.target{display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;box-shadow:inset 0 0 0 2px var(--beta);color:#00789E;}
+  .dot-token{position:absolute;inset:5px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-weight:700;font-size:11px;color:#242B45;box-shadow:0 1px 4px rgba(36,43,69,0.35);}
+  .dpad{display:grid;grid-template-columns:46px 46px 46px;grid-template-rows:46px 46px;gap:6px;}
+  .dbtn{font-family:'Baloo 2',sans-serif;font-size:18px;border-radius:10px;border:1px solid var(--hairline);background:var(--panel);color:var(--text);cursor:pointer;}
+  .dbtn:active{border-color:var(--gold);}
+  .dbtn.up{grid-column:2;grid-row:1;} .dbtn.left{grid-column:1;grid-row:2;} .dbtn.down{grid-column:2;grid-row:2;} .dbtn.right{grid-column:3;grid-row:2;}
+
+  /* sort */
+  .sort-items{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;min-height:38px;}
+  .sort-item{font-family:'Space Mono',monospace;font-size:11.5px;padding:8px 10px;border-radius:10px;border:1px solid var(--hairline);background:var(--panel);cursor:pointer;}
+  .sort-item.selected{border-color:var(--gold);color:#B87700;}
+  .sort-bins{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+  .bin{text-align:center;padding:12px 6px;border-radius:10px;border:2px dashed var(--hairline);font-family:'Space Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);cursor:pointer;transition:all .15s;}
+  .bin.flash-ok{border-color:var(--ok);color:#00805F;background:rgba(0,184,138,.1);}
+  .bin.flash-bad{border-color:var(--fail);color:#D6234A;background:rgba(255,77,109,.1);}
+
+  /* memory match */
+  .mem-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+  .mem-card{min-height:58px;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;border-radius:10px;border:1px solid var(--hairline);background:var(--panel);font-size:11.5px;line-height:1.35;cursor:pointer;}
+  .mem-card.flipped{border-color:var(--gold);color:#B87700;background:rgba(255,174,31,.1);}
+  .mem-card.matched{border-color:var(--ok);color:#00805F;background:rgba(0,184,138,.1);cursor:default;}
+
+  @keyframes shakeAnim{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .shake{animation:shakeAnim .3s;}
+
+  /* share/results */
+  .end-score{text-align:center;padding:6px 0 4px;}
+  .end-score .num{font-family:'Baloo 2',sans-serif;font-size:48px;font-weight:800;line-height:1;color:var(--gold);}
+  .end-score .tag{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;}
+  .level-breakdown{display:flex;flex-direction:column;gap:6px;margin:16px 0;font-family:'Space Mono',monospace;font-size:11px;}
+  .level-breakdown .lb-row{display:flex;justify-content:space-between;padding:7px 10px;border-radius:8px;background:var(--panel-raised);}
+  .level-breakdown .lb-row b{color:#B87700;}
+  .share-card-wrap{display:flex;justify-content:center;margin:16px 0;}
+  #shareCanvas{width:100%;max-width:380px;border-radius:14px;border:1px solid var(--hairline);}
+  .report-box{background:var(--panel-raised);border:1px solid var(--hairline);border-radius:12px;padding:14px;margin:14px 0;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);line-height:1.6;text-align:center;}
+  .report-box b{color:var(--text);}
+  .checkbox-row{display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer;}
+  .checkbox-row input{width:auto;}
+
+  /* host view */
+  .lb-row{display:flex;justify-content:space-between;padding:10px 12px;border-radius:10px;background:var(--panel-raised);margin-bottom:6px;font-family:'Space Mono',monospace;font-size:13px;}
+  .lb-row b{color:var(--gold);}
+  .add-row{display:flex;gap:8px;margin-top:10px;}
+  .add-row input{flex:1;}
+  .log{margin-top:14px;background:var(--panel-raised);border:1px solid var(--hairline);border-radius:12px;padding:12px 14px;font-family:'Space Mono',monospace;font-size:12px;color:#00805F;max-height:180px;overflow-y:auto;}
+  .log div{opacity:.9;line-height:1.7;}
+  .log .empty{color:#A6ACC8;}
+
+  footer{margin-top:24px;text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:#A6ACC8;}
+
+  @media (max-width:380px){
+    .wrap{padding:18px 12px 40px;}
+    .card{padding:14px;}
+    .puzzle-box{padding:10px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== LANDING ===== -->
+<div class="screen active" id="screenLanding">
+  <div class="wrap">
+    <div class="brand"><b>&lt;/&gt;</b> SOFTWARE &amp; ENTREPRENEURSHIP CLUB</div>
+    <h1>Week One: Survival Relay</h1>
+    <p class="lede">10 levels, 3 puzzle types, 1 finale that mixes all three. Pick any level, play it, replay it if you want a better score — your best attempt on each one counts. The whole relay is worth 20 points total, so every fraction of a point matters.</p>
+    <div class="card">
+      <label class="field-label">Your name (optional)</label>
+      <input type="text" id="playerName" placeholder="e.g. Alex" maxlength="20">
+      <label class="field-label" style="margin-top:14px;">Team number (required)</label>
+      <input type="number" id="teamNumber" placeholder="e.g. 7" min="1" step="1">
+      <label class="field-label" style="margin-top:14px;">Team name (optional)</label>
+      <input type="text" id="teamNameInput" placeholder="e.g. The Byte Squad" maxlength="24">
+      <button class="btn primary" style="margin-top:16px;" onclick="startGame()">Start playing</button>
+    </div>
+    <a class="host-link" href="#host" onclick="location.reload()">Working the booth? Staff scoreboard →</a>
+  </div>
+</div>
+
+<!-- ===== HUB ===== -->
+<div class="screen" id="screenHub">
+  <div class="wrap">
+    <div class="brand"><b>&lt;/&gt;</b> <span id="hubTeamLabel">TEAM</span></div>
+    <h1 style="font-size:22px;">Pick a level</h1>
+    <p class="lede">Tap any tile to play or replay it — only your best score per level counts toward your total.</p>
+    <div class="hub-total-bar"><span class="lbl">Total score</span><span class="num" id="hubTotal">0.0 / 20</span></div>
+    <div class="hub-grid" id="hubGrid"></div>
+    <button class="btn primary" onclick="renderShareCard()">See my results &amp; share</button>
+  </div>
+</div>
+
+<!-- ===== PLAY ===== -->
+<div class="screen" id="screenPlay">
+  <div class="wrap">
+    <a class="back-link" onclick="backToHub()">← Back to hub</a>
+    <div class="card stage">
+      <div id="stageContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SHARE / RESULTS ===== -->
+<div class="screen" id="screenShare">
+  <div class="wrap">
+    <a class="back-link" onclick="showScreen('hub')">← Back to hub</a>
+    <div class="brand"><b>&lt;/&gt;</b> YOUR RESULTS</div>
+    <div class="card">
+      <div class="end-score"><div class="num" id="shareTotal">0.0 / 20</div><div class="tag" id="shareTag">—</div></div>
+      <div class="level-breakdown" id="levelBreakdown"></div>
+      <div class="report-box" id="reportBoxShare"></div>
+      <div class="share-card-wrap"><canvas id="shareCanvas"></canvas></div>
+      <div class="btn-row">
+        <button class="btn" onclick="downloadShareImage()">Download image</button>
+        <button class="btn primary" onclick="nativeShare()">Share</button>
+      </div>
+      <p class="lede" style="margin:12px 0 0;font-size:12px;text-align:center;">Post it and tag us — <b id="igHandleText"></b></p>
+    </div>
+    <div class="card" id="bonusCard">
+      <label class="field-label">Bonus round</label>
+      <p class="lede" style="margin-bottom:12px;">We built a chatbot called Beyol and would love your honest feedback. Try it, tell us what you think, and grab bonus points.</p>
+      <a class="btn" href="https://ask-beyol-chatbot--tefedi22.replit.app/" target="_blank" rel="noopener" style="margin-bottom:12px;display:block;text-decoration:none;">Try Beyol &amp; give feedback ↗</a>
+      <label class="checkbox-row">
+        <input type="checkbox" id="bonusCheck" onchange="toggleBonus()">
+        I tried it and gave feedback (+2 bonus pts)
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOST SCOREBOARD ===== -->
+<div class="screen" id="screenHost">
+  <div class="wrap wide">
+    <div class="brand"><b>&lt;/&gt;</b> STAFF SCOREBOARD — THIS DEVICE ONLY</div>
+    <h1 style="font-size:22px;">Week One Relay — Live Totals</h1>
+    <p class="lede">As students finish, they'll show you a score (out of 20, or 22 with the chatbot bonus) and their team number. Enter it below. Saved only on this device/browser.</p>
+    <div class="card" id="hostLeaderboard"></div>
+    <div class="card">
+      <label class="field-label">Add a reported score</label>
+      <div class="add-row" style="margin-bottom:8px;">
+        <input type="number" id="hostTeamNum" placeholder="Team #" min="1" step="1">
+        <input type="text" id="hostTeamNameInput" placeholder="Team name (optional)">
+      </div>
+      <div class="add-row">
+        <input type="number" id="hostPoints" placeholder="Points reported, e.g. 14.6" min="0" step="0.1">
+        <button class="btn primary small" onclick="hostAddScore()">Add</button>
+      </div>
+      <div class="log" id="hostLog"><div class="empty">No scores added yet.</div></div>
+      <button class="btn" style="margin-top:14px;" onclick="hostReset()">Reset event totals</button>
+    </div>
+    <footer>Bookmark this page as <b>yourlink.com/#host</b> to come back to this view.</footer>
+  </div>
+</div>
+
+<script>
+/* EDIT THIS before you deploy: */
+const CLUB_INSTAGRAM = '@wsu_swe';
+const CHATBOT_URL = 'https://ask-beyol-chatbot--tefedi22.replit.app/';
+const BONUS_POINTS = 2;
+
+/* ================= SHARED STATE ================= */
+let levelMistakes = 0;   // reset per attempt, incremented by puzzle factories on wrong choices
+let puzzleLocked, timeLeft, timerInt, finishedAttempt, currentLevelIdx = null;
+const LEVEL_MAX = 2;      // each level worth up to 2 pts -> 10 levels = 20 total
+const BASE_POINTS = 1;
+const MISTAKE_PENALTY = 0.1;
+
+/* ================= MAZE FACTORY (multi-dot, decision-based) ================= */
+/* opts: {grid, cols, rows, dots:[{id,name,correctCode,color}], buildingKey:[{code,name}], codes:['1','3',...], labelPrefix:'W'|'' } */
+function makeMazeSetupV2(opts){
+  const { grid, cols, rows, dots, buildingKey, codes, labelPrefix } = opts;
+  // shrink cell size automatically for wider grids so it never overflows small phones
+  const cellPx = opts.cellPx || (cols>=9 ? 25 : cols>=7 ? 29 : 32);
+  return function(container, finish){
+    let startPos = null;
+    grid.forEach((row,r)=>row.forEach((cell,c)=>{ if(cell==='S') startPos={r,c}; }));
+    const localDots = dots.map(d=>({...d, pos:{...startPos}, delivered:false}));
+    let selectedId = localDots[0].id;
+
+    const legendHtml = buildingKey.map(b=>`${labelPrefix}${b.code} = ${b.name}`).join(' &nbsp;·&nbsp; ');
+    container.innerHTML = `
+      <div class="puzzle-instructions">Read who needs what, then walk each person to the right spot. All destinations are shown — choose carefully, wrong ones cost a little.</div>
+      <div class="building-key">${legendHtml}</div>
+      <div class="dot-chips" id="dotChips"></div>
+      <div class="maze-wrap">
+        <div class="maze-scroll"><div class="maze-grid" id="mazeGrid" style="grid-template-columns:repeat(${cols},${cellPx}px);grid-template-rows:repeat(${rows},${cellPx}px);"></div></div>
+        <div class="dpad">
+          <button class="dbtn up" data-dir="up">↑</button>
+          <button class="dbtn left" data-dir="left">←</button>
+          <button class="dbtn down" data-dir="down">↓</button>
+          <button class="dbtn right" data-dir="right">→</button>
+        </div>
+      </div>`;
+    const chipsEl = container.querySelector('#dotChips');
+    const gridEl = container.querySelector('#mazeGrid');
+
+    function drawChips(){
+      chipsEl.innerHTML='';
+      localDots.forEach(d=>{
+        const el=document.createElement('div');
+        let cls='dot-chip';
+        if(d.delivered) cls+=' delivered'; else if(d.id===selectedId) cls+=' active';
+        el.className=cls;
+        el.textContent = d.delivered? `${d.name} ✓` : d.name;
+        el.dataset.id=d.id;
+        chipsEl.appendChild(el);
+      });
+    }
+    function drawGrid(){
+      gridEl.innerHTML='';
+      grid.forEach((row,r)=>row.forEach((cell,c)=>{
+        const div=document.createElement('div');
+        let cls='mcell';
+        if(cell==='W') cls+=' wall'; else cls+=' floor';
+        if(cell==='S') cls+=' start';
+        if(codes.includes(cell)) cls+=' target';
+        div.className=cls;
+        div.style.width = cellPx+'px';
+        div.style.height = cellPx+'px';
+        if(codes.includes(cell)) div.textContent = labelPrefix+cell;
+        const occ = localDots.find(dd=>!dd.delivered && dd.pos.r===r && dd.pos.c===c);
+        if(occ){
+          const tok=document.createElement('div');
+          tok.className='dot-token'; tok.style.background=occ.color;
+          tok.textContent=occ.name.charAt(0);
+          div.appendChild(tok);
+        }
+        gridEl.appendChild(div);
+      }));
+    }
+    drawChips(); drawGrid();
+
+    chipsEl.addEventListener('click', e=>{
+      if(puzzleLocked) return;
+      const t=e.target.closest('.dot-chip'); if(!t) return;
+      const dot = localDots.find(d=>d.id===t.dataset.id);
+      if(dot.delivered) return;
+      selectedId = dot.id; drawChips();
+    });
+
+    container.querySelectorAll('.dbtn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        if(puzzleLocked) return;
+        const dot = localDots.find(d=>d.id===selectedId);
+        if(!dot || dot.delivered) return;
+        let {r,c}=dot.pos; const dir=b.dataset.dir;
+        if(dir==='up') r--; if(dir==='down') r++; if(dir==='left') c--; if(dir==='right') c++;
+        if(r<0||r>=rows||c<0||c>=cols||grid[r][c]==='W'){ gridEl.classList.add('shake'); setTimeout(()=>gridEl.classList.remove('shake'),300); return; }
+        dot.pos={r,c};
+        const cellVal = grid[r][c];
+        if(codes.includes(cellVal)){
+          if(cellVal===dot.correctCode){
+            dot.delivered = true;
+            const next = localDots.find(d=>!d.delivered);
+            if(next) selectedId = next.id;
+            if(localDots.every(d=>d.delivered)){ drawChips(); drawGrid(); finish(true); return; }
+          } else {
+            levelMistakes++;
+          }
+        }
+        drawChips(); drawGrid();
+      });
+    });
+  };
+}
+
+/* ---- Delivery maze grids (all buildings always visible; multiple people, one at a time) ---- */
+const MAZE_D1 = [
+  ['S','P','P','P'],
+  ['W','W','W','P'],
+  ['1','P','P','P'],
+  ['W','W','W','19']
+];
+const MAZE_D2 = [
+  ['W','W','W','3','W','W','W'],
+  ['W','W','W','P','W','W','W'],
+  ['S','P','P','P','P','P','7'],
+  ['W','W','W','P','W','W','W'],
+  ['W','W','W','1','W','W','W']
+];
+const MAZE_D3 = [
+  ['W','W','W','1','W','W','7','W','W'],
+  ['W','W','W','P','W','W','P','W','W'],
+  ['W','W','W','P','W','W','P','W','W'],
+  ['S','P','P','P','P','P','P','P','19'],
+  ['W','W','W','W','W','W','P','W','W'],
+  ['W','W','W','W','W','W','P','W','W'],
+  ['W','W','W','W','W','W','3','W','W']
+];
+const BKEY_ALL = [{code:'1',name:'Library'},{code:'3',name:'Dorm & Visa Office'},{code:'7',name:'Financial Dept'},{code:'19',name:'International Office'}];
+function bkey(codes){ return BKEY_ALL.filter(b=>codes.includes(b.code)); }
+
+/* ================= SORT FACTORY ================= */
+function makeSortSetup(items, bins){
+  return function(container, finish){
+    let selected=null, sortedCount=0;
+    const localItems = items.map(i=>({...i}));
+    container.innerHTML = `
+      <div class="puzzle-instructions">Tap an item, then tap the bin it belongs in. Sort all ${localItems.length}. Wrong bins cost a little.</div>
+      <div class="sort-items" id="sortItems"></div>
+      <div class="sort-bins" id="sortBins">${bins.map(b=>`<div class="bin" data-bin="${b}">${b}</div>`).join('')}</div>`;
+    const itemsEl = container.querySelector('#sortItems');
+    function drawItems(){
+      itemsEl.innerHTML='';
+      localItems.filter(i=>!i.done).forEach(i=>{
+        const d=document.createElement('div');
+        d.className='sort-item'+(selected===i.id?' selected':'');
+        d.textContent=i.label; d.dataset.id=i.id;
+        itemsEl.appendChild(d);
+      });
+    }
+    drawItems();
+    itemsEl.addEventListener('click', e=>{
+      if(puzzleLocked) return;
+      const t=e.target.closest('.sort-item'); if(!t) return;
+      selected = Number(t.dataset.id); drawItems();
+    });
+    container.querySelector('#sortBins').addEventListener('click', e=>{
+      if(puzzleLocked) return;
+      const bin=e.target.closest('.bin'); if(!bin || selected==null) return;
+      const item = localItems.find(i=>i.id===selected);
+      if(item.bin === bin.dataset.bin){
+        item.done=true; sortedCount++; selected=null;
+        bin.classList.add('flash-ok'); setTimeout(()=>bin.classList.remove('flash-ok'),300);
+        drawItems();
+        if(sortedCount===localItems.length) finish(true);
+      } else {
+        levelMistakes++;
+        bin.classList.add('flash-bad'); setTimeout(()=>bin.classList.remove('flash-bad'),300);
+        selected=null; drawItems();
+      }
+    });
+  };
+}
+const SORT_L1 = makeSortSetup([
+  {id:1,label:'Used tissue',bin:'general'},
+  {id:2,label:'Banana peel',bin:'food'},
+  {id:3,label:'Plastic bottle',bin:'recyclable'},
+  {id:4,label:'Glass jar',bin:'recyclable'}
+], ['general','food','recyclable']);
+const SORT_L2 = makeSortSetup([
+  {id:1,label:'Used tissue',bin:'general'},
+  {id:2,label:'Banana peel',bin:'food'},
+  {id:3,label:'Plastic bottle',bin:'recyclable'},
+  {id:4,label:'Glass jar',bin:'recyclable'},
+  {id:5,label:'Broken chair leg',bin:'bulky'},
+  {id:6,label:'Cardboard box',bin:'recyclable'}
+], ['general','food','recyclable','bulky']);
+const SORT_L3 = makeSortSetup([
+  {id:1,label:'Used tissue',bin:'general'},
+  {id:2,label:'Banana peel',bin:'food'},
+  {id:3,label:'Plastic bottle',bin:'recyclable'},
+  {id:4,label:'Glass jar',bin:'recyclable'},
+  {id:5,label:'Broken chair leg',bin:'bulky'},
+  {id:6,label:'Cardboard box',bin:'recyclable'},
+  {id:7,label:'Eggshells',bin:'general'},
+  {id:8,label:'Used batteries',bin:'hazardous'}
+], ['general','food','recyclable','bulky','hazardous']);
+
+/* ================= MEMORY MATCH FACTORY (Korean words) ================= */
+function makeMemorySetup(pairs){
+  return function(container, finish){
+    let cards = [];
+    pairs.forEach(p=>{ cards.push({pairId:p.id, text:p.a}); cards.push({pairId:p.id, text:p.b}); });
+    cards = cards.map((c,i)=>({...c, idx:i})).sort(()=>Math.random()-0.5);
+    let flipped = [], matchedCount = 0, lock = false;
+    container.innerHTML = `
+      <div class="puzzle-instructions">Flip two cards at a time. Match each Korean word to its meaning — ${pairs.length} pairs.</div>
+      <div class="mem-grid" id="memGrid"></div>`;
+    const gridEl = container.querySelector('#memGrid');
+    function draw(){
+      gridEl.innerHTML='';
+      cards.forEach(c=>{
+        const el=document.createElement('div');
+        let cls='mem-card';
+        if(c.matched) cls+=' matched'; else if(flipped.includes(c.idx)) cls+=' flipped';
+        el.className=cls;
+        el.textContent = (c.matched || flipped.includes(c.idx)) ? c.text : '?';
+        el.dataset.idx=c.idx;
+        gridEl.appendChild(el);
+      });
+    }
+    draw();
+    gridEl.addEventListener('click', e=>{
+      if(puzzleLocked || lock) return;
+      const t=e.target.closest('.mem-card'); if(!t) return;
+      const idx=Number(t.dataset.idx);
+      const card = cards.find(c=>c.idx===idx);
+      if(card.matched || flipped.includes(idx)) return;
+      flipped.push(idx); draw();
+      if(flipped.length===2){
+        lock=true;
+        const [i1,i2]=flipped;
+        const c1=cards.find(c=>c.idx===i1), c2=cards.find(c=>c.idx===i2);
+        if(c1.pairId===c2.pairId){
+          c1.matched=true; c2.matched=true; matchedCount++;
+          flipped=[]; lock=false; draw();
+          if(matchedCount===pairs.length) finish(true);
+        } else {
+          setTimeout(()=>{ flipped=[]; lock=false; draw(); },700);
+        }
+      }
+    });
+  };
+}
+const CULTURE_L1 = makeMemorySetup([
+  {id:1, a:'안녕하세요', b:'"Hello" — the standard polite greeting'},
+  {id:2, a:'감사합니다', b:'"Thank you" — polite, formal form'},
+  {id:3, a:'친구', b:'"Friend"'}
+]);
+const CULTURE_L2 = makeMemorySetup([
+  {id:1, a:'존댓말', b:'Formal, polite speech for elders & strangers'},
+  {id:2, a:'오빠', b:'What a girl calls a close older guy'},
+  {id:3, a:'언니', b:'What a girl calls a close older girl'},
+  {id:4, a:'화이팅', b:'From "fighting" — means "you got this!"'}
+]);
+const CULTURE_L3 = makeMemorySetup([
+  {id:1, a:'선배', b:'A more senior student or colleague'},
+  {id:2, a:'후배', b:'A more junior student or colleague'},
+  {id:3, a:'눈치', b:'Fun fact: the unspoken skill of reading a room'},
+  {id:4, a:'대박', b:'Fun fact: literally "big jackpot" — used like "no way!"'},
+  {id:5, a:'빨리빨리', b:'Fun fact: "hurry hurry" — core to Korea\u2019s fast pace'}
+]);
+
+/* ================= COMBO FINALE (all 3 mechanics, roles swapped) ================= */
+function setupCombo(container, finish){
+  const stageAGrid = [
+    ['W','W','G','W','W'],
+    ['W','W','P','W','W'],
+    ['F','P','S','P','R'],
+    ['W','W','P','W','W'],
+    ['W','W','B','W','W']
+  ];
+  const stageADots = [{id:'i1', name:'Banana peel', correctCode:'F', color:'var(--gold)'}];
+  const stageAKey = [{code:'G',name:'General'},{code:'F',name:'Food'},{code:'R',name:'Recyclable'},{code:'B',name:'Bulky'}];
+
+  const stageBPairs = [
+    {id:1, a:'Jun — general arrival help', b:'W19'},
+    {id:2, a:'Sera — dorm placement issue', b:'W3'},
+    {id:3, a:'Minho — tuition question', b:'W7'}
+  ];
+
+  const stageCItems = [
+    {id:1,label:'안녕하세요',bin:'greeting'},
+    {id:2,label:'오빠',bin:'family term'},
+    {id:3,label:'선배',bin:'school term'}
+  ];
+
+  function runStageA(){
+    container.innerHTML = `<div class="combo-stage-label">Stage 1 of 3 — Sort the Trash (as a maze)</div><div id="stageBox"></div>`;
+    const box = container.querySelector('#stageBox');
+    const setup = makeMazeSetupV2({ grid:stageAGrid, cols:5, rows:5, dots:stageADots, buildingKey:stageAKey, codes:['G','F','R','B'], labelPrefix:'' });
+    setup(box, ()=> runStageB());
+  }
+  function runStageB(){
+    container.innerHTML = `<div class="combo-stage-label">Stage 2 of 3 — Campus Delivery (as memory match)</div><div id="stageBox"></div>`;
+    const box = container.querySelector('#stageBox');
+    makeMemorySetup(stageBPairs)(box, ()=> runStageC());
+  }
+  function runStageC(){
+    container.innerHTML = `<div class="combo-stage-label">Stage 3 of 3 — Culture Match (as sorting)</div><div id="stageBox"></div>`;
+    const box = container.querySelector('#stageBox');
+    makeSortSetup(stageCItems, ['greeting','family term','school term'])(box, ()=> finish(true));
+  }
+  runStageA();
+}
+
+/* ================= LEVEL DEFINITIONS ================= */
+const LEVELS = [
+  { tag:"CAMPUS · T1", title:"New Arrival",
+    scenario:"Jun just landed and needs help with general arrival paperwork. Read the key, then walk him to the right building.",
+    timeLimit:30, setup: makeMazeSetupV2({grid:MAZE_D1, cols:4, rows:4, dots:[{id:'jun',name:'Jun',correctCode:'19',color:'var(--gold)'}], buildingKey:bkey(['1','19']), codes:['1','19'], labelPrefix:'W'}) },
+  { tag:"TRASH · T1", title:"Sort Before It Piles Up",
+    scenario:"Korea splits trash into general, food, and recyclable. Sort each item into the right bin.",
+    timeLimit:25, setup: SORT_L1 },
+  { tag:"CULTURE · T1", title:"Everyday Korean",
+    scenario:"Basics you'll use on day one. Match each word to its meaning.",
+    timeLimit:30, setup: CULTURE_L1 },
+
+  { tag:"CAMPUS · T2", title:"Two Stops, One Afternoon",
+    scenario:"Sera's dorm placement fell through, Minho owes a late tuition installment. Get each of them to the right office — order doesn't matter, accuracy does.",
+    timeLimit:40, setup: makeMazeSetupV2({grid:MAZE_D2, cols:7, rows:5, dots:[{id:'sera',name:'Sera',correctCode:'3',color:'var(--gold)'},{id:'minho',name:'Minho',correctCode:'7',color:'var(--beta)'}], buildingKey:bkey(['1','3','7']), codes:['1','3','7'], labelPrefix:'W'}) },
+  { tag:"TRASH · T2", title:"More Bags, More Problems",
+    scenario:"Move-in week means more trash — and now a bulky-item bin too. Sort each item correctly.",
+    timeLimit:35, setup: SORT_L2 },
+  { tag:"CULTURE · T2", title:"Social Terms",
+    scenario:"Words you'll hear constantly around campus. Match each one to its meaning.",
+    timeLimit:40, setup: CULTURE_L2 },
+
+  { tag:"CAMPUS · T3", title:"Rush Hour, Three Names",
+    scenario:"Amara needs the library, Tomás needs the Financial Dept, Priya needs the Visa Office. All four campus buildings are on the map — only three are correct for anyone.",
+    timeLimit:55, setup: makeMazeSetupV2({grid:MAZE_D3, cols:9, rows:7, dots:[{id:'amara',name:'Amara',correctCode:'1',color:'var(--gold)'},{id:'tomas',name:'Tomás',correctCode:'7',color:'var(--beta)'},{id:'priya',name:'Priya',correctCode:'3',color:'var(--alpha)'}], buildingKey:bkey(['1','3','7','19']), codes:['1','3','7','19'], labelPrefix:'W'}) },
+  { tag:"TRASH · T3", title:"The Tricky Ones",
+    scenario:"Five bins now, and not everything sorts the way you'd guess. Sort each item correctly.",
+    timeLimit:45, setup: SORT_L3 },
+  { tag:"CULTURE · T3", title:"The Deeper Stuff",
+    scenario:"Seniority, table manners, and a couple of words with real personality. Match each one to its meaning.",
+    timeLimit:50, setup: CULTURE_L3 },
+
+  { tag:"FINALE", title:"The Full Relay",
+    scenario:"Everything at once, roles swapped: sort trash by maze, deliver people by memory match, sort culture words by category.",
+    timeLimit:80, setup: setupCombo }
+];
+
+/* ================= SCREEN CONTROLLER ================= */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen'+id.charAt(0).toUpperCase()+id.slice(1)).classList.add('active');
+}
+
+/* ================= PLAYER STATE ================= */
+let player = { name:'', teamNumber:null, teamName:'', levelBest:[], levelBonus:[], bonusDone:false };
+
+function teamDisplay(){
+  return 'TEAM ' + player.teamNumber + (player.teamName ? ' · ' + player.teamName.toUpperCase() : '');
+}
+
+function startGame(){
+  const numInput = document.getElementById('teamNumber');
+  const num = numInput.value.trim();
+  if(!num){ numInput.focus(); numInput.style.borderColor='var(--fail)'; return; }
+  numInput.style.borderColor='';
+  player.teamNumber = num;
+  player.teamName = document.getElementById('teamNameInput').value.trim();
+  player.name = document.getElementById('playerName').value.trim();
+  player.levelBest = new Array(LEVELS.length).fill(null);
+  player.levelBonus = new Array(LEVELS.length).fill(null);
+  player.bonusDone = false;
+  document.getElementById('hubTeamLabel').textContent = teamDisplay();
+  showScreen('hub');
+  renderHub();
+}
+
+function totalScore(){
+  return player.levelBest.reduce((s,v)=>s+(v||0),0);
+}
+function totalWithBonus(){
+  return totalScore() + (player.bonusDone ? BONUS_POINTS : 0);
+}
+function renderHub(){
+  document.getElementById('hubTotal').textContent = (Math.round(totalScore()*10)/10).toFixed(1) + ' / 20';
+  const grid = document.getElementById('hubGrid');
+  grid.innerHTML = '';
+  LEVELS.forEach((lv,i)=>{
+    const best = player.levelBest[i];
+    const tile = document.createElement('div');
+    tile.className = 'hub-tile'+(best!=null?' played':'');
+    tile.innerHTML = `<div class="htag">${lv.tag}</div><div class="htitle">${lv.title}</div><div class="hscore">${best!=null? best.toFixed(1)+' / '+LEVEL_MAX : 'Not played · Tap to play'}</div>`;
+    tile.addEventListener('click', ()=>playLevel(i));
+    grid.appendChild(tile);
+  });
+}
+function backToHub(){
+  clearInterval(timerInt);
+  showScreen('hub');
+  renderHub();
+}
+
+/* ================= PLAY A LEVEL ================= */
+function playLevel(idx){
+  currentLevelIdx = idx;
+  levelMistakes = 0;
+  showScreen('play');
+  renderLevelStage();
+}
+function renderLevelStage(){
+  const lv = LEVELS[currentLevelIdx];
+  document.getElementById('stageContent').innerHTML = `
+    <div class="day-badge">${lv.tag} — LEVEL ${currentLevelIdx+1} of ${LEVELS.length}</div>
+    <h2>${lv.title}</h2>
+    <div class="scenario">${lv.scenario}</div>
+    <div class="puzzle-box" id="puzzleBox"></div>
+    <div class="result-banner" id="resultBanner"></div>
+    <div class="stage-controls">
+      <button class="btn primary" id="startBtn">Start the clock</button>
+      <div class="timer" id="timerEl">${lv.timeLimit}</div>
+    </div>`;
+  puzzleLocked = true; finishedAttempt = false;
+  lv.setup(document.getElementById('puzzleBox'), handleFinish);
+  document.getElementById('startBtn').addEventListener('click', beginAttempt);
+}
+function beginAttempt(){
+  document.getElementById('startBtn').disabled = true;
+  puzzleLocked = false;
+  timeLeft = LEVELS[currentLevelIdx].timeLimit;
+  updateTimerUI();
+  timerInt = setInterval(()=>{
+    timeLeft--; updateTimerUI();
+    if(timeLeft<=0){ clearInterval(timerInt); handleFinish(false); }
+  },1000);
+}
+function updateTimerUI(){
+  const el=document.getElementById('timerEl'); if(!el) return;
+  el.textContent = Math.max(timeLeft,0);
+  el.classList.toggle('low', timeLeft<=10);
+}
+function computeLevelPoints(success){
+  if(!success) return {points:0, bonus:0};
+  const limit = LEVELS[currentLevelIdx].timeLimit;
+  const bonusRaw = (Math.max(timeLeft,0)/limit) * (LEVEL_MAX - BASE_POINTS);
+  let pts = BASE_POINTS + bonusRaw - (levelMistakes*MISTAKE_PENALTY);
+  pts = Math.max(0, Math.min(LEVEL_MAX, pts));
+  pts = Math.round(pts*10)/10;
+  const bonus = Math.round(bonusRaw*10)/10;
+  return {points:pts, bonus:bonus};
+}
+function handleFinish(success){
+  if(finishedAttempt) return;
+  finishedAttempt = true; puzzleLocked = true;
+  clearInterval(timerInt);
+  const banner = document.getElementById('resultBanner');
+  banner.className = 'result-banner show ' + (success?'ok':'fail');
+  if(success){
+    const {points, bonus} = computeLevelPoints(true);
+    const mistakeNote = levelMistakes>0 ? `, −${(levelMistakes*MISTAKE_PENALTY).toFixed(1)} for ${levelMistakes} wrong move${levelMistakes>1?'s':''}` : '';
+    banner.innerHTML = `✓ SOLVED<div class="rb-sub">${BASE_POINTS} base + ${bonus.toFixed(1)} speed${mistakeNote} = ${points.toFixed(1)}/${LEVEL_MAX}</div><button class="btn primary confirm-btn" id="confirmBtn">Back to hub</button>`;
+  } else {
+    banner.innerHTML = `✕ TIME'S UP<div class="rb-sub">No points this attempt — try again anytime</div><button class="btn primary confirm-btn" id="confirmBtn">Back to hub</button>`;
+  }
+  document.getElementById('confirmBtn').addEventListener('click', ()=>confirmAttempt(success));
+}
+function confirmAttempt(success){
+  const {points, bonus} = computeLevelPoints(success);
+  const prevBest = player.levelBest[currentLevelIdx];
+  if(prevBest==null || points>prevBest){
+    player.levelBest[currentLevelIdx] = points;
+    player.levelBonus[currentLevelIdx] = bonus;
+  }
+  backToHub();
+}
+
+/* ================= SHARE / RESULTS ================= */
+function toggleBonus(){
+  player.bonusDone = document.getElementById('bonusCheck').checked;
+  renderShareCard();
+}
+function renderShareCard(){
+  showScreen('share');
+  const total = Math.round(totalWithBonus()*10)/10;
+  const maxTotal = 20 + (player.bonusDone ? BONUS_POINTS : 0);
+  document.getElementById('shareTotal').textContent = total.toFixed(1) + ' / ' + maxTotal;
+  const playedCount = player.levelBest.filter(v=>v!=null).length;
+  document.getElementById('shareTag').textContent = playedCount===LEVELS.length ? 'ALL LEVELS PLAYED' : `${playedCount} / ${LEVELS.length} LEVELS PLAYED`;
+  let breakdownHtml = LEVELS.map((lv,i)=>{
+    const pts = player.levelBest[i];
+    const bonus = player.levelBonus[i];
+    const bonusNote = pts!=null ? ` <span style="opacity:.6">(+${bonus.toFixed(1)} speed)</span>` : '';
+    return `<div class="lb-row"><span>${i+1}. ${lv.title}</span><span>${pts!=null? '<b>'+pts.toFixed(1)+'</b>/'+LEVEL_MAX+bonusNote : '— / '+LEVEL_MAX}</span></div>`;
+  }).join('');
+  if(player.bonusDone){
+    breakdownHtml += `<div class="lb-row"><span>Bonus · Beyol feedback</span><span><b>+${BONUS_POINTS.toFixed(1)}</b></span></div>`;
+  }
+  document.getElementById('levelBreakdown').innerHTML = breakdownHtml;
+  document.getElementById('reportBoxShare').innerHTML =
+    `Show this total to a club officer — mention you're <b>${teamDisplay()}</b> so it gets added correctly.`;
+  document.getElementById('igHandleText').textContent = CLUB_INSTAGRAM;
+  drawShareCanvas(total, maxTotal);
+}
+function drawShareCanvas(total, maxTotal){
+  const canvas = document.getElementById('shareCanvas');
+  canvas.width = 800; canvas.height = 1100;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#F5F6FB'; ctx.fillRect(0,0,800,1100);
+  ctx.fillStyle = 'rgba(124,92,255,0.10)';
+  ctx.beginPath(); ctx.arc(650,150,220,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(0,174,239,0.08)';
+  ctx.beginPath(); ctx.arc(60,1000,180,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#B87700'; ctx.font = '600 20px monospace';
+  ctx.fillText('</> SOFTWARE & ENTREPRENEURSHIP CLUB', 50, 80);
+  ctx.fillStyle = '#242B45'; ctx.font = '800 48px sans-serif';
+  ctx.fillText('Week One', 50, 155);
+  ctx.fillText('Survival Relay', 50, 210);
+  ctx.fillStyle = '#7C5CFF'; ctx.font='700 26px sans-serif';
+  ctx.fillText((player.name? player.name+' · ':'') + teamDisplay(), 50, 255);
+  ctx.fillStyle = '#FFAE1F'; ctx.font='800 130px sans-serif';
+  ctx.fillText(total.toFixed(1), 50, 430);
+  ctx.fillStyle='#6D7593'; ctx.font='500 24px monospace';
+  ctx.fillText('OUT OF ' + maxTotal + ' POINTS', 50, 465);
+  let y=530;
+  ctx.font='400 19px monospace';
+  LEVELS.forEach((lv,i)=>{
+    const pts = player.levelBest[i];
+    ctx.fillStyle = pts!=null ? '#00805F' : '#A6ACC8';
+    ctx.fillText(`${i+1}. ${lv.title}`, 50, y);
+    ctx.fillStyle = '#242B45';
+    ctx.fillText(pts!=null? pts.toFixed(1)+'/'+LEVEL_MAX : '—', 640, y);
+    y += 33;
+  });
+  if(player.bonusDone){
+    ctx.fillStyle = '#00805F'; ctx.fillText('Bonus · Beyol feedback', 50, y);
+    ctx.fillStyle = '#242B45'; ctx.fillText('+'+BONUS_POINTS.toFixed(1), 640, y);
+  }
+  ctx.fillStyle='#B87700'; ctx.font='600 24px monospace';
+  ctx.fillText('Tag us: ' + CLUB_INSTAGRAM, 50, 1060);
+}
+function downloadShareImage(){
+  const canvas = document.getElementById('shareCanvas');
+  const link = document.createElement('a');
+  link.download = 'week-one-relay-score.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+function nativeShare(){
+  const canvas = document.getElementById('shareCanvas');
+  canvas.toBlob(async (blob)=>{
+    const total = (Math.round(totalWithBonus()*10)/10).toFixed(1);
+    const maxTotal = 20 + (player.bonusDone ? BONUS_POINTS : 0);
+    const text = `I scored ${total}/${maxTotal} on Week One Survival Relay! ${CLUB_INSTAGRAM}`;
+    const file = new File([blob], 'week-one-relay-score.png', {type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:'Week One Survival Relay', text}); }
+      catch(e){ /* user cancelled */ }
+    } else {
+      downloadShareImage();
+    }
+  });
+}
+
+/* ================= HOST SCOREBOARD (dynamic team numbers) ================= */
+function loadHostTotals(){
+  const teams = JSON.parse(localStorage.getItem('wosr_teams')||'{}');
+  const entries = Object.entries(teams).sort((a,b)=>b[1].total-a[1].total);
+  const board = document.getElementById('hostLeaderboard');
+  if(entries.length===0){
+    board.innerHTML = '<p class="lede" style="margin:0;">No teams yet — add a score below to start the leaderboard.</p>';
+  } else {
+    board.innerHTML = entries.map(([num,t],i)=>
+      `<div class="lb-row"><span>${i===0?'🏆 ':''}Team ${num}${t.name? ' · '+t.name:''}</span><b>${t.total.toFixed(1)}</b></div>`
+    ).join('');
+  }
+  const log = JSON.parse(localStorage.getItem('wosr_log')||'[]');
+  const logEl = document.getElementById('hostLog');
+  if(log.length===0){ logEl.innerHTML = '<div class="empty">No scores added yet.</div>'; return; }
+  logEl.innerHTML = log.slice().reverse().map(e=>`<div>+${e.pts} → Team ${e.num}${e.name?' ('+e.name+')':''}</div>`).join('');
+}
+function hostAddScore(){
+  const numInput = document.getElementById('hostTeamNum');
+  const nameInput = document.getElementById('hostTeamNameInput');
+  const ptsInput = document.getElementById('hostPoints');
+  const num = numInput.value.trim();
+  const pts = Number(ptsInput.value);
+  if(!num || !pts || pts<0) return;
+  const teams = JSON.parse(localStorage.getItem('wosr_teams')||'{}');
+  if(!teams[num]) teams[num] = {name:'', total:0};
+  if(nameInput.value.trim()) teams[num].name = nameInput.value.trim();
+  teams[num].total = Math.round((teams[num].total + pts)*10)/10;
+  localStorage.setItem('wosr_teams', JSON.stringify(teams));
+  const log = JSON.parse(localStorage.getItem('wosr_log')||'[]');
+  log.push({num, name:teams[num].name, pts});
+  localStorage.setItem('wosr_log', JSON.stringify(log));
+  ptsInput.value=''; nameInput.value='';
+  loadHostTotals();
+}
+function hostReset(){
+  if(!confirm('Reset all team totals on this device? This cannot be undone.')) return;
+  localStorage.removeItem('wosr_teams');
+  localStorage.removeItem('wosr_log');
+  loadHostTotals();
+}
+
+/* ================= INIT / ROUTING ================= */
+if(location.hash === '#host'){
+  showScreen('host');
+  loadHostTotals();
+}
+</script>
+</body>
+</html>
