@@ -215,10 +215,14 @@
       <label class="field-label">Bonus round</label>
       <p class="lede" style="margin-bottom:12px;">We built a chatbot called Beyol and would love your honest feedback. Try it, tell us what you think, and grab bonus points.</p>
       <a class="btn" href="https://ask-beyol-chatbot--tefedi22.replit.app/" target="_blank" rel="noopener" style="margin-bottom:12px;display:block;text-decoration:none;">Try Beyol &amp; give feedback ↗</a>
-      <label class="checkbox-row">
-        <input type="checkbox" id="bonusCheck" onchange="toggleBonus()">
-        I tried it and gave feedback (+2 bonus pts)
-      </label>
+      <p class="lede" style="margin-bottom:12px;">Complete both short feedback forms. Your responses help us improve Beyol and understand what students actually need. Please submit both forms before claiming the +2 bonus.</p>
+
+      <label class="field-label">Feedback form 1</label>
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd5Lcz0As2vEjDioOwbWrJ2woM2nyhsaWRdrh0ELN9gLFuM2g/viewform?embedded=true" title="Beyol feedback form 1" width="100%" height="700" frameborder="0" marginheight="0" marginwidth="0" style="border:0;border-radius:12px;background:#fff;margin-bottom:12px;" loading="lazy">Loading…</iframe>
+      <label class="field-label">Feedback form 2</label>
+      
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSctfjn1klrF7t3LDdyCYFhOWnR1hAkcGwcDfm7csUJncsuBtw/viewform?embedded=true" title="Beyol feedback form 2" width="100%" height="700" frameborder="0" marginheight="0" marginwidth="0" style="border:0;border-radius:12px;background:#fff;margin-bottom:12px;" loading="lazy">Loading…</iframe>
+      <button class="btn primary" type="button" onclick="claimFeedbackBonus()">I submitted both forms → claim +2 points</button>
     </div>
   </div>
 </div>
@@ -725,8 +729,8 @@ function confirmAttempt(success){
 }
 
 /* ================= SHARE / RESULTS ================= */
-function toggleBonus(){
-  player.bonusDone = document.getElementById('bonusCheck').checked;
+function claimFeedbackBonus(){
+  player.bonusDone = true;
   renderShareCard();
 }
 function renderShareCard(){
